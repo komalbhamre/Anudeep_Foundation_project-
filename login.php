@@ -1,17 +1,51 @@
+<?php
+session_start();
+error_reporting(0);
+include('includes/dbconnection.php');
+
+if(isset($_POST['login'])) 
+  {
+    $username=$_POST['username'];
+    $password=md5($_POST['password']);
+    $sql ="SELECT ID FROM tbladmin WHERE UserName=:username and Password=:password";
+    $query=$dbh->prepare($sql);
+    $query-> bindParam(':username', $username, PDO::PARAM_STR);
+$query-> bindParam(':password', $password, PDO::PARAM_STR);
+    $query-> execute();
+    $results=$query->fetchAll(PDO::FETCH_OBJ);
+    if($query->rowCount() > 0)
+{
+foreach ($results as $result) {
+$_SESSION['ifscaid']=$result->ID;
+}
+
+  if(!empty($_POST["remember"])) {
+//COOKIES for username
+setcookie ("user_login",$_POST["username"],time()+ (10 * 365 * 24 * 60 * 60));
+//COOKIES for password
+setcookie ("userpassword",$_POST["password"],time()+ (10 * 365 * 24 * 60 * 60));
+} else {
+if(isset($_COOKIE["user_login"])) {
+setcookie ("user_login","");
+if(isset($_COOKIE["userpassword"])) {
+setcookie ("userpassword","");
+        }
+      }
+}
+$_SESSION['login']=$_POST['username'];
+echo "<script type='text/javascript'> document.location ='dashboard.php'; </script>";
+} else{
+echo "<script>alert('Invalid Details');</script>";
+}
+}
+
+?>
 <!doctype html>
 <html lang="en">
 
     <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta name="description" content="A fully featured admin theme which can be used to build CRM, CMS, etc.">
-        <meta name="author" content="Coderthemes">
-
-        <!-- App Favicon -->
-        <link rel="shortcut icon" href="assets/images/favicon.ico">
-
-        <!-- App title -->
-        <title>Uplon - Bootstrap 4 Responsive Admin Dashboard Template</title>
+       
+        <title>IFSC Code Finder Portal|| Login</title>
 
         <!-- Bootstrap CSS -->
         <link href="assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
@@ -33,11 +67,10 @@
 
         	<div class="account-bg">
                 <div class="card-box mb-0">
+                    <strong style="padding-top: 30px;"><a href="../index.php" class="text-muted"><i class="fa fa-home m-r-5"></i> Back Home!!</a> </strong>
                     <div class="text-center m-t-20">
-                        <a href="index.html" class="logo">
                             <i class="zmdi zmdi-group-work icon-c-logo"></i>
-                            <span>Uplon</span>
-                        </a>
+                            <span>IFSC Finder | Admin Login</span>
                     </div>
                     <div class="m-t-10 p-20">
                         <div class="row">
@@ -45,24 +78,24 @@
                                 <h6 class="text-muted text-uppercase m-b-0 m-t-0">Sign In</h6>
                             </div>
                         </div>
-                        <form class="m-t-20" action="index.html">
+                        <form class="m-t-20" action="" method="post">
 
                             <div class="form-group row">
                                 <div class="col-12">
-                                    <input class="form-control" type="text" required="" placeholder="Username">
+                                    <input type="text" class="form-control" placeholder="enter your username" required="true" name="username" value="<?php if(isset($_COOKIE["user_login"])) { echo $_COOKIE["user_login"]; } ?>" >
                                 </div>
                             </div>
 
                             <div class="form-group row">
                                 <div class="col-12">
-                                    <input class="form-control" type="password" required="" placeholder="Password">
+                                    <input type="password" class="form-control" placeholder="enter your password" name="password" required="true" value="<?php if(isset($_COOKIE["userpassword"])) { echo $_COOKIE["userpassword"]; } ?>">
                                 </div>
                             </div>
 
                             <div class="form-group row">
                                 <div class="col-12">
-                                    <div class="checkbox checkbox-custom">
-                                        <input id="checkbox-signup" type="checkbox">
+                                    <div class="checkbox-custom">
+                                        <input type="checkbox" id="remember" name="remember" <?php if(isset($_COOKIE["user_login"])) { ?> checked <?php } ?> />
                                         <label for="checkbox-signup">
                                             Remember me
                                         </label>
@@ -72,37 +105,18 @@
 
                             <div class="form-group text-center row m-t-10">
                                 <div class="col-12">
-                                    <button class="btn btn-success btn-block waves-effect waves-light" type="submit">Log In</button>
+                                    <button class="btn btn-success btn-block waves-effect waves-light" type="submit" name="login">Log In</button>
                                 </div>
                             </div>
 
                             <div class="form-group row m-t-30 mb-0">
                                 <div class="col-12">
-                                    <a href="pages-recoverpw.html" class="text-muted"><i class="fa fa-lock m-r-5"></i> Forgot your password?</a>
+                                    <a href="forgot-password.php" class="text-muted"><i class="fa fa-lock m-r-5"></i> Forgot your password?</a>
                                 </div>
                             </div>
 
-                            <div class="form-group row m-t-30 mb-0">
-                                <div class="col-12 text-center">
-                                    <h5 class="text-muted"><b>Sign in with</b></h5>
-                                </div>
-                            </div>
+                     
 
-                            <div class="form-group row mb-0 text-center">
-                                <div class="col-12">
-                                    <button type="button" class="btn btn-facebook waves-effect font-14 waves-light m-t-20">
-                                       <i class="fa fa-facebook m-r-5"></i> Facebook
-                                    </button>
-
-                                    <button type="button" class="btn btn-twitter waves-effect font-14 waves-light m-t-20">
-                                       <i class="fa fa-twitter m-r-5"></i> Twitter
-                                    </button>
-
-                                    <button type="button" class="btn btn-googleplus waves-effect font-14 waves-light m-t-20">
-                                       <i class="fa fa-google-plus m-r-5"></i> Google+
-                                    </button>
-                                </div>
-                            </div>
 
                         </form>
 
@@ -113,18 +127,9 @@
             </div>
             <!-- end card-box-->
 
-            <div class="m-t-20">
-                <div class="text-center">
-                    <p class="text-white">Don't have an account? <a href="pages-register.html" class="text-white m-l-5"><b>Sign Up</b></a></p>
-                </div>
-            </div>
 
         </div>
         <!-- end wrapper page -->
-
-
-        
-
         <!-- jQuery  -->
         <script src="assets/js/jquery.min.js"></script>
         <script src="assets/js/bootstrap.bundle.min.js"></script>
